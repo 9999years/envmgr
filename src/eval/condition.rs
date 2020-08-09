@@ -1,5 +1,7 @@
+use std::env;
+
 use color_eyre::{
-    eyre::{self, WrapErr},
+    eyre::{self, eyre, WrapErr},
     Section, SectionExt,
 };
 use tracing::instrument;
@@ -31,11 +33,18 @@ impl Eval for Condition {
                 }
                 Ok(true)
             }
-            Condition::Host(_) => unimplemented!(),
-            Condition::HostRe(_) => unimplemented!(),
-            Condition::OsFamily(_) => unimplemented!(),
-            Condition::Os(_) => unimplemented!(),
-            Condition::Arch(_) => unimplemented!(),
+            Condition::Host(_) => Err(eyre!("eval for Condition::Host unimplemented")),
+            Condition::HostRe(_) => Err(eyre!("eval for Condition::HostRe unimplemented")),
+            Condition::OsFamily(_) => Err(eyre!("eval for Condition::OsFamily unimplemented")),
+            Condition::Os(_) => Err(eyre!("eval for Condition::Os unimplemented")),
+            Condition::Arch(_) => Err(eyre!("eval for Condition::Arch unimplemented")),
+            Condition::Var(var) => match env::var(&var).map(|var| var.is_empty()) {
+                Ok(is_empty) => Ok(is_empty),
+                Err(env::VarError::NotPresent) => Ok(false),
+                Err(err) => Err(err)
+                    .wrap_err("Fetching environment variable")
+                    .with_section(move || var.header("Variable name")),
+            },
             Condition::True => Ok(true),
             Condition::False => Ok(false),
         }

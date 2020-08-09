@@ -11,15 +11,13 @@ pub struct EnvConfig {
     pub env: HashMap<String, VarConfig>,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(from = "de::VarConfigWrapper")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct VarConfig {
     pub sep: String,
     pub paths: Vec<DirEntry>,
 }
 
-#[derive(Debug, Clone, PartialEq, Deserialize)]
-#[serde(from = "de::DirEntry")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DirEntry {
     pub path: String,
     pub when: Condition,

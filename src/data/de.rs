@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::iter;
 
 use serde::{Deserialize, Serialize};
 use wyz::conv::Conv;
@@ -8,6 +9,10 @@ pub struct EnvConfig {
     env: VarEntries,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct VarEntries(pub HashMap<String, VarConfigWrapper>);
+
 impl From<EnvConfig> for super::EnvConfig {
     fn from(cfg: EnvConfig) -> Self {
         Self {
@@ -16,51 +21,41 @@ impl From<EnvConfig> for super::EnvConfig {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
-enum VarEntries {
-    Map(VarEntry),
-    Vec(Vec<VarEntry>),
-}
-
 impl Into<HashMap<String, super::VarConfig>> for VarEntries {
     fn into(self) -> HashMap<String, super::VarConfig> {
-        match self {
-            VarEntries::Map(vars) => vars
-                .into_iter()
-                .map(|(var, cfg)| (var, cfg.conv::<super::VarConfig>()))
-                .collect(),
-            VarEntries::Vec(groups) => groups
-                .into_iter()
-                .flat_map(|vars| {
-                    vars.into_iter()
-                        .map(|(var, cfg)| (var, cfg.conv::<super::VarConfig>()))
-                })
-                .collect(),
-        }
+        self.0
+            .into_iter()
+            .map(|(var, cfg)| (var, cfg.conv::<super::VarConfig>()))
+            .collect()
     }
 }
-
-type VarEntry = HashMap<String, VarConfigWrapper>;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum VarConfigWrapper {
-    Plain(Vec<DirEntry>),
-    Wrapped(VarConfig),
+    SingleString(String),
+    Entries(DirEntryWrapper),
+    Full(VarConfig),
 }
 
 impl From<VarConfigWrapper> for super::VarConfig {
     fn from(config: VarConfigWrapper) -> Self {
         match config {
-            VarConfigWrapper::Plain(paths) => Self {
+            VarConfigWrapper::Entries(paths) => Self {
                 sep: default_var_sep(),
                 paths: paths
                     .into_iter()
                     .map(|entry| entry.conv::<super::DirEntry>())
                     .collect(),
             },
-            VarConfigWrapper::Wrapped(cfg) => cfg.into(),
+            VarConfigWrapper::Full(cfg) => cfg.into(),
+            VarConfigWrapper::SingleString(path) => Self {
+                sep: default_var_sep(),
+                paths: vec![super::DirEntry {
+                    path,
+                    when: Default::default(),
+                }],
+            },
         }
     }
 }
@@ -76,7 +71,7 @@ pub struct VarConfig {
         alias = "dirs",
         alias = "files"
     )]
-    paths: Vec<DirEntry>,
+    paths: DirEntryWrapper,
 }
 
 impl From<VarConfig> for super::VarConfig {
@@ -94,6 +89,51 @@ impl From<VarConfig> for super::VarConfig {
 
 fn default_var_sep() -> String {
     if cfg!(windows) { ";" } else { ":" }.to_owned()
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum DirEntryWrapper {
+    Single(DirEntry),
+    Many(Vec<DirEntry>),
+}
+
+impl Default for DirEntryWrapper {
+    fn default() -> Self {
+        DirEntryWrapper::Many(Vec::new())
+    }
+}
+
+pub enum DirEntryWrapperIter {
+    Once(iter::Once<DirEntry>),
+    Vec(std::vec::IntoIter<DirEntry>),
+}
+
+impl Iterator for DirEntryWrapperIter {
+    type Item = DirEntry;
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            DirEntryWrapperIter::Once(itr) => itr.next(),
+            DirEntryWrapperIter::Vec(itr) => itr.next(),
+        }
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        match self {
+            DirEntryWrapperIter::Once(itr) => itr.size_hint(),
+            DirEntryWrapperIter::Vec(itr) => itr.size_hint(),
+        }
+    }
+}
+
+impl IntoIterator for DirEntryWrapper {
+    type Item = DirEntry;
+    type IntoIter = DirEntryWrapperIter;
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            DirEntryWrapper::Single(entry) => DirEntryWrapperIter::Once(iter::once(entry)),
+            DirEntryWrapper::Many(entries) => DirEntryWrapperIter::Vec(entries.into_iter()),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -175,6 +215,8 @@ pub enum Condition {
     /// Glob match against the CPU architeture
     #[serde(alias = "architecture")]
     Arch(String),
+    /// True when a given environment variable is non-empty
+    Var(String),
     /// Trivial always-true condition
     True,
     /// Trivial always-false condition
