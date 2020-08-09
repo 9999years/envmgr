@@ -9,6 +9,7 @@ pub use de::Condition;
 #[serde(from = "de::EnvConfig")]
 pub struct EnvConfig {
     pub env: HashMap<String, VarConfig>,
+    pub tests: HashMap<String, Condition>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

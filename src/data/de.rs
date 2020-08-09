@@ -7,6 +7,7 @@ use wyz::conv::Conv;
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EnvConfig {
     env: VarEntries,
+    tests: HashMap<String, Condition>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -17,6 +18,7 @@ impl From<EnvConfig> for super::EnvConfig {
     fn from(cfg: EnvConfig) -> Self {
         Self {
             env: cfg.env.into(),
+            tests: cfg.tests,
         }
     }
 }
