@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
-use wyz::conv::Conv;
 
 mod condition;
 mod impls;
@@ -43,7 +42,7 @@ pub struct VarMap(pub HashMap<String, VarConfig>);
 pub enum VarConfig {
     SingleString(String),
     Entries(OneOrMore<DirEntry>),
-    Full(FullVarConfig),
+    Full(ConditionEl<FullVarConfig>),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

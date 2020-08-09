@@ -4,10 +4,10 @@ use serde::{Deserialize, Serialize};
 #[serde(deny_unknown_fields)]
 pub struct ConditionEl<T> {
     #[serde(flatten)]
-    value: T,
+    pub value: T,
 
     #[serde(alias = "if", default)]
-    when: ConditionWrapper,
+    pub when: ConditionWrapper,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

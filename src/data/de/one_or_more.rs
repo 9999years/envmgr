@@ -9,6 +9,24 @@ pub enum OneOrMore<T> {
     More(Vec<T>),
 }
 
+impl<T> OneOrMore<T> {
+    pub fn first(&self) -> Option<&T> {
+        match self {
+            OneOrMore::One(t) => Some(t),
+            OneOrMore::More(ts) => ts.first(),
+        }
+    }
+}
+
+impl<T> Into<Vec<T>> for OneOrMore<T> {
+    fn into(self) -> Vec<T> {
+        match self {
+            OneOrMore::One(t) => vec![t],
+            OneOrMore::More(ts) => ts,
+        }
+    }
+}
+
 impl<T> Default for OneOrMore<T> {
     fn default() -> Self {
         OneOrMore::More(Vec::new())

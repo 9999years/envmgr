@@ -1,3 +1,5 @@
+use wyz::conv::Conv;
+
 use super::*;
 
 impl From<EnvConfig> for super::super::EnvConfig {
@@ -5,6 +7,65 @@ impl From<EnvConfig> for super::super::EnvConfig {
         Self {
             env: cfg.env.into(),
             tests: cfg.tests,
+        }
+    }
+}
+
+impl Into<super::super::VarMap> for EnvMap {
+    fn into(self) -> super::super::VarMap {
+        match self {
+            EnvMap::Block(ConditionEl { value, when }) => {
+                let flattened_block: super::super::VarMap = value.into();
+                for &mut v in flattened_block.0.values_mut() {}
+                flattened_block
+            }
+            EnvMap::Map(map) => map.into(),
+        }
+    }
+}
+
+impl From<VarMap> for super::super::VarMap {
+    fn from(map: VarMap) -> Self {
+        Self(
+            map.0
+                .into_iter()
+                .map(|(k, v)| (k, v.conv::<ConditionEl<super::super::VarConfig>>()))
+                .collect(),
+        )
+    }
+}
+
+impl Into<super::super::VarMap> for Block {
+    fn into(self) -> super::super::VarMap {
+        (*self.block).into()
+    }
+}
+
+impl Into<ConditionEl<super::super::VarConfig>> for VarConfig {
+    fn into(self) -> ConditionEl<super::super::VarConfig> {
+        match self {
+            VarConfig::SingleString(s) => {
+                vec![s.conv::<super::super::ShellPath>().conv::<ConditionEl<_>>()]
+                    .conv::<super::super::VarConfig>()
+                    .conv()
+            }
+            VarConfig::Entries(entries) => {}
+            VarConfig::Full(_) => {}
+        }
+    }
+}
+
+impl From<DirEntry> for ConditionEl<super::super::ShellPath> {
+    fn from(entry: DirEntry) -> Self {
+        match entry {
+            DirEntry::Plain(s) => s.conv::<super::super::ShellPath>().conv(),
+            DirEntry::Conditional(cond) => ConditionEl {
+                value: cond
+                    .value
+                    .conv::<String>()
+                    .conv::<super::super::ShellPath>(),
+                when: cond.when,
+            },
         }
     }
 }
