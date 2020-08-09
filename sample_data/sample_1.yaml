@@ -1,0 +1,10 @@
+---
+tests:
+  test_one: true
+  test_two: false
+env:
+  GOPATH: ~/.go
+  PATH:
+    - a
+    - b
+    - c

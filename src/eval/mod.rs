@@ -23,6 +23,21 @@ pub trait Eval {
     fn eval(self) -> Self::Output;
 }
 
+pub trait EvalWithEnv {
+    type Output;
+    type Environment;
+
+    fn eval_with_env(self, env: &mut Self::Environment) -> Self::Output;
+}
+
+impl<E: Eval> EvalWithEnv for E {
+    type Output = <Self as Eval>::Output;
+    type Environment = ();
+    fn eval_with_env(self, env: &mut Self::Environment) -> Self::Output {
+        self.eval()
+    }
+}
+
 impl Eval for EnvConfig {
     type Output = eyre::Result<Vars>;
     fn eval(self) -> Self::Output {
@@ -59,9 +74,17 @@ impl Eval for DirEntry {
     type Output = eyre::Result<Option<String>>;
     fn eval(self) -> Self::Output {
         Ok(if self.when.eval()? {
-            Some(self.path)
+            Some(self.path.into())
         } else {
             None
         })
+    }
+}
+
+impl EvalWithEnv for ShellPath {
+    type Output;
+    type Environment;
+    fn eval_with_env(self, env: &mut Self::Environment) -> Self::Output {
+        todo!()
     }
 }

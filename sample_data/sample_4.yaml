@@ -1,0 +1,6 @@
+---
+env:
+  - block:
+      FOO: foo
+    when: true
+  - BAR: bar

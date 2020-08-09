@@ -1,0 +1,8 @@
+---
+env:
+  PATH:
+    sep: '!!'
+    paths:
+      - a
+      - b
+      - c

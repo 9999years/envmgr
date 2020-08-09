@@ -1,56 +1,53 @@
 ---
 env:
-  GOPATH: ~/.go
-  VOLTA_HOME: ~/.volta
-  PATH:
-    - ~/.cargo/bin
-    - $VOLTA_HOME/bin
-    - ~/.rvm/bin
-    - $GOPATH/bin
-    - ~/.cabal/bin
-    - ~/.nix-profile/bin
-    - /usr/local/linkedin/bin
-    - /export/content/linkedin/bin
-    - ~linuxbrew/.linuxbrew/bin
-    - /usr/local/bin
-    - /usr/local/sbin
-    - /usr/bin
-    - /usr/sbin
-    - /bin
-    - /sbin
-  LD_LIBRARY_PATH:
-    - /usr/local/lib64
-    - /usr/local/lib
-    - /usr/lib64
-    - /lib64
-  LD_RUN_PATH: $LD_LIBRARY_PATH
-  # The Python build uses this and will give you an extremely confusing and
-  # difficult-to-diagnose error if you don't have it set correctly.
-  LIBRARY_PATH: $LD_LIBRARY_PATH
-  C_INCLUDE_PATH:
-    - /usr/local/include
-  MANPATH:
-    - /Applications/Xcode.app/Contents/Developer/usr/share/man
-    - ~linuxbrew/.linuxbrew/share/man
-    - /usr/local/share/man
-    - /usr/share/man
-  PKG_CONFIG_PATH:
-    - ~linuxbrew/.linuxbrew/lib/pkgconfig
-    - ~linuxbrew/.linuxbrew/opt/openssl@1.1/lib/pkgconfig
-  RUBY_VERSION:
-    val: '2.6.0'
-    when: { os: macos }
-  FFI_VERSION:
-    val: '3.2.1'
-    when: { os: macos }
-  CAIRO_VERSION:
-    val: '1.16.0'
-    when: { os: macos }
-  PKG_CONFIG_PATH:
-    - /usr/local/Cellar/libffi/$FFI_VERSION/lib/pkgconfig/
-    - /usr/local/Cellar/cairo/$CAIRO_VERSION/lib/pkgconfig/
-  WINHOME: /mnt/c/Users/$USER
-  FISHRC: ~/.config/fish/config.fish
-  PYTHONSTARTUP: ~/.pythonrc
-  PYTHON_VERSION: '3.8'
-  CPPFLAGS: $CFLAGS
+  - GOPATH: ~/.go
+    VOLTA_HOME: ~/.volta
+    PATH:
+      - ~/.cargo/bin
+      - $VOLTA_HOME/bin
+      - ~/.rvm/bin
+      - $GOPATH/bin
+      - ~/.cabal/bin
+      - ~/.nix-profile/bin
+      - /usr/local/linkedin/bin
+      - /export/content/linkedin/bin
+      - /usr/local/bin
+      - /usr/local/sbin
+      - /usr/bin
+      - /usr/sbin
+      - /bin
+      - /sbin
+      - $PATH
+    LD_LIBRARY_PATH:
+      - /usr/local/lib64
+      - /usr/local/lib
+      - /usr/lib64
+      - /lib64
+      - $LD_LIBRARY_PATH
+    LD_RUN_PATH: $LD_LIBRARY_PATH
+    # The Python build uses this and will give you an extremely confusing and
+    # difficult-to-diagnose error if you don't have it set correctly.
+    LIBRARY_PATH: $LD_LIBRARY_PATH
+    C_INCLUDE_PATH:
+      - /usr/local/include
+      - $C_INCLUDE_PATH
+    MANPATH:
+      - /Applications/Xcode.app/Contents/Developer/usr/share/man
+      - /usr/src/pvm3/man  # idk but it's in the nixos man_db.conf
+      - /usr/local/share/man
+      - /usr/share/man
+      - /usr/man
+      - $MANPATH
+    PKG_CONFIG_PATH:
+      - /usr/local/Cellar/libffi/$FFI_VERSION/lib/pkgconfig/
+      - /usr/local/Cellar/cairo/$CAIRO_VERSION/lib/pkgconfig/
+    WINHOME: /mnt/c/Users/$USER
+    FISHRC: ~/.config/fish/config.fish
+    PYTHONSTARTUP: ~/.pythonrc
+    PYTHON_VERSION: '3.8'
+    CPPFLAGS: $CFLAGS
+  - when: is_macos
+    block:
+      RUBY_VERSION: '2.6.0'
+      FFI_VERSION: '3.2.1'
+      CAIRO_VERSION: '1.16.0'
